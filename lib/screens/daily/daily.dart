@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class DailyPage extends StatefulWidget {
-  final String title; // 제목
-  final List<Map<String, dynamic>> tasks; // 할 일 목록 (참조로 전달)
-  final Function(List<Map<String, dynamic>>) onUpdateTasks; // 상태 업데이트 콜백
+  final String title;
+  final List<Map<String, dynamic>> tasks;
+  final Function(List<Map<String, dynamic>>) onUpdateTasks;
+  final Color color;
 
   const DailyPage({
     super.key,
     required this.title,
     required this.tasks,
     required this.onUpdateTasks,
+    required this.color,
   });
 
   @override
@@ -22,7 +25,7 @@ class _DailyPageState extends State<DailyPage> {
   @override
   void initState() {
     super.initState();
-    tasks = widget.tasks; // 원본 데이터를 참조하도록 설정
+    tasks = List<Map<String, dynamic>>.from(widget.tasks);
   }
 
   @override
@@ -30,37 +33,76 @@ class _DailyPageState extends State<DailyPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: widget.color,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            widget.onUpdateTasks(tasks);
+            Navigator.pop(context);
+          },
+        ),
       ),
-      body: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          final task = tasks[index];
-          return ListTile(
-            leading: Checkbox(
-              value: task["completed"],
-              onChanged: (bool? value) {
-                setState(() {
-                  task["completed"] = value ?? false; // 상태 변경
-                });
-                widget.onUpdateTasks(tasks); // 변경된 상태를 전달
+      body: tasks.isEmpty
+          ? const Center(
+              child: Text(
+                '할 일이 없습니다.',
+                style: TextStyle(fontSize: 18, color: Colors.black54),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                return _buildTaskItem(context, tasks[index], index);
               },
             ),
-            title: Text(
-              task["title"],
-              style: TextStyle(
-                decoration: task["completed"] ? TextDecoration.lineThrough : null,
+    );
+  }
+
+  Widget _buildTaskItem(BuildContext context, Map<String, dynamic> task, int index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Slidable(
+        key: ValueKey(task),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.2,
+          children: [
+            CustomSlidableAction(
+              onPressed: (context) {
+                setState(() {
+                  tasks.removeAt(index); // 항목 삭제
+                });
+              },
+              backgroundColor: Colors.red,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 36.0,
               ),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          widget.onUpdateTasks(tasks); // 변경된 상태를 전달
-          Navigator.pop(context); // 페이지 종료
-        },
-        child: const Icon(Icons.check),
+          ],
+        ),
+        child: ListTile(
+          dense: true,
+          leading: Checkbox(
+            value: task["completed"],
+            onChanged: (bool? value) {
+              setState(() {
+                task["completed"] = value ?? false;
+              });
+            },
+            activeColor: widget.color,
+          ),
+          title: Text(
+            task["title"],
+            style: TextStyle(
+              fontSize: 16,
+              color: task["completed"] ? Colors.grey : Colors.black87,
+              decoration: task["completed"] ? TextDecoration.lineThrough : null,
+            ),
+          ),
+        ),
       ),
     );
   }
