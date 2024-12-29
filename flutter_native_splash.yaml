@@ -1,0 +1,8 @@
+flutter_native_splash:
+  color: "#FFFFFF" # 배경색 (Hex 값)
+  image: assets/images/scheduler_flash.png # 스플래시 이미지 경로
+  android: true # Android에서 활성화
+  ios: true # iOS에서 활성화
+  web: false # 웹에서는 비활성화
+  android_gravity: center # 이미지 위치 (Android)
+  ios_content_mode: scaleAspectFit # 이미지 위치 (iOS)
