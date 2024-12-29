@@ -76,39 +76,28 @@ class _HomePageState extends State<HomePage> {
     required Color color,
     required bool isMonthly,
   }) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () => _navigateToPage(
+        context: context,
+        title: title,
+        tasks: tasks,
+        isMonthly: isMonthly,
       ),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(title: title, color: color),
-            const SizedBox(height: 8), // 헤더와 첫 Task 간 간격
-            ...tasks.map((task) => _buildTaskItem(task, color)),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: GestureDetector(
-                onTap: () => _navigateToPage(
-                  context: context,
-                  title: title,
-                  tasks: tasks,
-                  isMonthly: isMonthly,
-                ),
-                child: Text(
-                  "전체 보기",
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(title: title, color: color),
+              const SizedBox(height: 8), // 헤더와 첫 Task 간 간격
+              ...tasks.map((task) => _buildTaskItem(task, color)),
+            ],
+          ),
         ),
       ),
     );
@@ -144,18 +133,24 @@ class _HomePageState extends State<HomePage> {
         dense: true, // 간결한 디자인
         leading: Checkbox(
           value: task["completed"],
-          onChanged: (bool? value) {
-            setState(() {
-              task["completed"] = value ?? false;
-            });
-          },
-          activeColor: color, // 카드별 색상 적용
+          onChanged: null, // 체크 기능 비활성화
+          checkColor: Colors.white, // 체크 내부 색상
+          fillColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              // 체크된 상태일 경우 카드 색상
+              if (states.contains(WidgetState.selected)) {
+                return color;
+              }
+
+              return null;
+            },
+          ),
         ),
         title: Text(
           task["title"],
           style: TextStyle(
             fontSize: 16,
-            color: task["completed"] ? Colors.grey : Colors.black87,
+            color: Colors.black87,
             decoration: task["completed"] ? TextDecoration.lineThrough : null,
           ),
         ),
