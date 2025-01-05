@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../controllers/task_controller.dart';
 
 class MonthlyPage extends StatefulWidget {
   final String title; // 제목
-  final List<Map<String, dynamic>> tasks; // 할 일 목록
-  final Function(List<Map<String, dynamic>>) onUpdateTasks; // 상태 업데이트 콜백
 
   const MonthlyPage({
     super.key,
     required this.title,
-    required this.tasks,
-    required this.onUpdateTasks,
   });
 
   @override
@@ -18,6 +16,7 @@ class MonthlyPage extends StatefulWidget {
 }
 
 class _MonthlyPageState extends State<MonthlyPage> {
+  final TaskController taskController = Get.find<TaskController>();
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
@@ -27,6 +26,12 @@ class _MonthlyPageState extends State<MonthlyPage> {
       appBar: AppBar(
         title: Text(widget.title),
         backgroundColor: Colors.deepPurple,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -41,29 +46,64 @@ class _MonthlyPageState extends State<MonthlyPage> {
                 _focusedDay = focusedDay;
               });
             },
+            calendarStyle: const CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color: Colors.deepPurple,
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.orange,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              itemCount: widget.tasks.length,
-              itemBuilder: (context, index) {
-                final task = widget.tasks[index];
+            child: Obx(() {
+              final filteredTasks = taskController.monthlyTasks.where((task) {
                 final taskDate = DateTime.parse(task["date"]);
-                if (!isSameDay(taskDate, _selectedDay)) return const SizedBox.shrink();
-                return ListTile(
-                  leading: Checkbox(
-                    value: task["completed"],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        task["completed"] = value ?? false;
-                      });
-                      widget.onUpdateTasks(widget.tasks);
-                    },
+                return isSameDay(taskDate, _selectedDay);
+              }).toList();
+
+              if (filteredTasks.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "선택된 날짜에 할 일이 없습니다.",
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
-                  title: Text(task["title"]),
                 );
-              },
-            ),
+              }
+
+              return ListView.builder(
+                itemCount: filteredTasks.length,
+                itemBuilder: (context, index) {
+                  final task = filteredTasks[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: ListTile(
+                      dense: true,
+                      leading: Checkbox(
+                        value: task["completed"],
+                        onChanged: (bool? value) {
+                          taskController.updateTaskCompletion(
+                              "monthly", taskController.monthlyTasks.indexOf(task), value ?? false);
+                        },
+                        activeColor: Colors.deepPurple,
+                      ),
+                      title: Text(
+                        task["title"],
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: task["completed"] ? Colors.grey : Colors.black87,
+                          decoration:
+                              task["completed"] ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
           ),
         ],
       ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'controllers/task_controller.dart';
 import 'screens/home/home.dart'; // HomePage 파일 import
+import 'package:get/get.dart';
 
 void main() {
+  Get.put(TaskController());
   runApp(const MyApp());
 }
 
@@ -10,12 +13,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: '할 일 관리',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }

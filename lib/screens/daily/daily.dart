@@ -1,72 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class DailyPage extends StatefulWidget {
+import '../../controllers/task_controller.dart';
+
+class DailyPage extends StatelessWidget {
   final String title;
-  final List<Map<String, dynamic>> tasks;
-  final Function(List<Map<String, dynamic>>) onUpdateTasks;
   final Color color;
+  final bool isToday;
 
-  const DailyPage({
+  DailyPage({
     super.key,
     required this.title,
-    required this.tasks,
-    required this.onUpdateTasks,
     required this.color,
+    required this.isToday,
   });
 
-  @override
-  State<DailyPage> createState() => _DailyPageState();
-}
+  final TaskController taskController = Get.find<TaskController>();
 
-class _DailyPageState extends State<DailyPage> {
-  late List<Map<String, dynamic>> completedTasks;
-  late List<Map<String, dynamic>> pendingTasks;
-
-  @override
-  void initState() {
-    super.initState();
-    // 완료된 할 일과 완료되지 않은 할 일을 초기화
-    completedTasks = widget.tasks.where((task) => task["completed"] == true).toList();
-    pendingTasks = widget.tasks.where((task) => task["completed"] == false).toList();
+  RxList<Map<String, dynamic>> getTask() {
+    return isToday ? taskController.todayTasks : taskController.tomorrowTasks;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: widget.color,
+        title: Text(title),
+        backgroundColor: color,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            widget.onUpdateTasks([...completedTasks, ...pendingTasks]);
-            Navigator.pop(context);
-          },
+          onPressed: () => Get.back(),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: _buildTaskList(
-              title: "완료한 일",
-              tasks: completedTasks,
-              color: Colors.green,
-            ),
+            child: Obx(() {
+              final tasks = getTask().where((task) => task["completed"]).toList();
+              return _buildTaskList(
+                title: "완료한 일",
+                tasks: tasks,
+                color: Colors.green,
+              );
+            }),
           ),
           const Divider(height: 1, color: Colors.grey),
           Expanded(
-            child: _buildTaskList(
-              title: "해야 할 일",
-              tasks: pendingTasks,
-              color: widget.color,
-            ),
+            child: Obx(() {
+              final tasks = getTask().where((task) => !task["completed"]).toList();
+              return _buildTaskList(
+                title: "해야 할 일",
+                tasks: tasks,
+                color: color,
+              );
+            }),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddTaskDialog(context),
+        backgroundColor: color,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildTaskList({required String title, required List<Map<String, dynamic>> tasks, required Color color}) {
+  Widget _buildTaskList({
+    required String title,
+    required List<Map<String, dynamic>> tasks,
+    required Color color,
+  }) {
     return Container(
       color: Colors.grey[200],
       child: Padding(
@@ -108,34 +111,138 @@ class _DailyPageState extends State<DailyPage> {
   Widget _buildTaskItem(Map<String, dynamic> task, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ListTile(
-        dense: true,
-        leading: Checkbox(
-          value: task["completed"],
-          onChanged: (bool? value) {
-            setState(() {
-              task["completed"] = value ?? false;
-
-              if (task["completed"]) {
-                pendingTasks.remove(task);
-                completedTasks.add(task);
-              } else {
-                completedTasks.remove(task);
-                pendingTasks.add(task);
-              }
-            });
-          },
-          activeColor: color,
+      child: Dismissible(
+        key: ValueKey(task),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.red,
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: const Icon(Icons.delete, color: Colors.white, size: 28),
         ),
-        title: Text(
-          task["title"],
-          style: TextStyle(
-            fontSize: 16,
-            color: task["completed"] ? Colors.grey : Colors.black87,
-            decoration: task["completed"] ? TextDecoration.lineThrough : null,
+        onDismissed: (direction) {
+          getTask().remove(task);
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text('"${task["title"]}"가 삭제되었습니다.'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        child: ListTile(
+          dense: true,
+          leading: Checkbox(
+            value: task["completed"],
+            onChanged: (bool? value) {
+              final section = isToday ? "today" : "tomorrow";
+              taskController.updateTaskCompletion(
+                section,
+                getTask().indexOf(task),
+                value ?? false,
+              );
+            },
+            activeColor: color,
+          ),
+          title: Text(
+            "${task["title"]} ${task["time"] != null ? '(${task["time"]})' : ''}",
+            style: TextStyle(
+              fontSize: 16,
+              color: task["completed"] ? Colors.grey : Colors.black87,
+              decoration: task["completed"] ? TextDecoration.lineThrough : null,
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showAddTaskDialog(BuildContext context) {
+    final TextEditingController taskTextController = TextEditingController();
+    TimeOfDay? selectedTime;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("새 할 일 추가"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: taskTextController,
+                    decoration: const InputDecoration(
+                      hintText: "할 일을 입력하세요",
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          selectedTime != null
+                              ? "선택된 시간: ${selectedTime?.format(context)}"
+                              : "시간을 선택하세요",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.access_time),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                            initialEntryMode: TimePickerEntryMode.input,
+                          );
+                          if (time != null) {
+                            setState(() {
+                              selectedTime = time;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("취소"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (taskTextController.text.isEmpty || selectedTime == null) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            taskTextController.text.isEmpty
+                                ? "할 일을 입력하세요."
+                                : "시간을 선택하세요.",
+                          ),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    getTask().add({
+                      "title": taskTextController.text,
+                      "completed": false,
+                      "time": selectedTime?.format(context),
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("추가"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
