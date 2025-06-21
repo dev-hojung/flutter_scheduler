@@ -891,7 +891,7 @@ class _MonthlyPageState extends State<MonthlyPage> {
                           height: 6,
                           width: 6,
                           decoration: const BoxDecoration(
-                            color: Colors.deepPurple,
+                            color: Colors.redAccent,
                             shape: BoxShape.circle,
                           ),
                         );
