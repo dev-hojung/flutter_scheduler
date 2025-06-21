@@ -17,7 +17,7 @@ class DailyPage extends StatelessWidget {
 
   final TaskController taskController = Get.find<TaskController>();
 
-  RxList<Map<String, dynamic>> getTask() {
+  List<Map<String, dynamic>> getTask() {
     return isToday ? taskController.todayTasks : taskController.tomorrowTasks;
   }
 
@@ -36,7 +36,8 @@ class DailyPage extends StatelessWidget {
         children: [
           Expanded(
             child: Obx(() {
-              final tasks = getTask().where((task) => task["completed"]).toList();
+              final tasks =
+                  getTask().where((task) => task["completed"]).toList();
               return _buildTaskList(
                 title: "완료한 일",
                 tasks: tasks,
@@ -47,7 +48,8 @@ class DailyPage extends StatelessWidget {
           const Divider(height: 1, color: Colors.grey),
           Expanded(
             child: Obx(() {
-              final tasks = getTask().where((task) => !task["completed"]).toList();
+              final tasks =
+                  getTask().where((task) => !task["completed"]).toList();
               return _buildTaskList(
                 title: "해야 할 일",
                 tasks: tasks,
@@ -121,7 +123,10 @@ class DailyPage extends StatelessWidget {
           child: const Icon(Icons.delete, color: Colors.white, size: 28),
         ),
         onDismissed: (direction) {
-          getTask().remove(task);
+          final section = isToday ? "today" : "tomorrow";
+          final taskList = getTask();
+          final taskIndex = taskList.indexOf(task);
+          taskController.deleteTask(section, taskIndex);
           ScaffoldMessenger.of(Get.context!).showSnackBar(
             SnackBar(
               content: Text('"${task["title"]}"가 삭제되었습니다.'),
@@ -214,7 +219,8 @@ class DailyPage extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (taskTextController.text.isEmpty || selectedTime == null) {
+                    if (taskTextController.text.isEmpty ||
+                        selectedTime == null) {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -229,7 +235,8 @@ class DailyPage extends StatelessWidget {
                       );
                       return;
                     }
-                    getTask().add({
+                    final section = isToday ? "today" : "tomorrow";
+                    taskController.addTask(section, {
                       "title": taskTextController.text,
                       "completed": false,
                       "time": selectedTime?.format(context),

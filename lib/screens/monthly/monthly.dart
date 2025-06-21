@@ -80,6 +80,69 @@ class _MonthlyPageState extends State<MonthlyPage> {
     );
   }
 
+  void _showEditTaskDialog(Map<String, dynamic> task) {
+    final TextEditingController titleController =
+        TextEditingController(text: task["title"]);
+    final DateTime taskDate = DateTime.parse(task["date"]);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "${taskDate.month}월 ${taskDate.day}일 일정 수정",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: titleController,
+            decoration: const InputDecoration(
+              labelText: "일정 내용",
+              border: OutlineInputBorder(),
+              hintText: "할 일을 입력해주세요",
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("취소"),
+            ),
+            TextButton(
+              onPressed: () {
+                // 삭제 기능
+                final taskIndex = taskController.monthlyTasks.indexOf(task);
+                taskController.deleteTask("monthly", taskIndex);
+                setState(() {});
+                Navigator.of(context).pop();
+              },
+              child: const Text("삭제", style: TextStyle(color: Colors.red)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.trim().isNotEmpty) {
+                  final taskIndex = taskController.monthlyTasks.indexOf(task);
+                  final updatedTask = Map<String, dynamic>.from(task);
+                  updatedTask["title"] = titleController.text.trim();
+
+                  taskController.updateTask("monthly", taskIndex, updatedTask);
+                  setState(() {});
+                  Navigator.of(context).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("수정"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,27 +287,36 @@ class _MonthlyPageState extends State<MonthlyPage> {
                   final task = filteredTasks[index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ListTile(
-                      dense: true,
-                      leading: Checkbox(
-                        value: task["completed"],
-                        onChanged: (bool? value) {
-                          taskController.updateTaskCompletion(
-                              "monthly",
-                              taskController.monthlyTasks.indexOf(task),
-                              value ?? false);
-                        },
-                        activeColor: Colors.deepPurple,
-                      ),
-                      title: Text(
-                        task["title"],
-                        style: TextStyle(
-                          fontSize: 16,
-                          color:
-                              task["completed"] ? Colors.grey : Colors.black87,
-                          decoration: task["completed"]
-                              ? TextDecoration.lineThrough
-                              : null,
+                    child: GestureDetector(
+                      onDoubleTap: () {
+                        _showEditTaskDialog(task);
+                      },
+                      onLongPress: () {
+                        _showEditTaskDialog(task);
+                      },
+                      child: ListTile(
+                        dense: true,
+                        leading: Checkbox(
+                          value: task["completed"],
+                          onChanged: (bool? value) {
+                            taskController.updateTaskCompletion(
+                                "monthly",
+                                taskController.monthlyTasks.indexOf(task),
+                                value ?? false);
+                          },
+                          activeColor: Colors.deepPurple,
+                        ),
+                        title: Text(
+                          task["title"],
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: task["completed"]
+                                ? Colors.grey
+                                : Colors.black87,
+                            decoration: task["completed"]
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
                         ),
                       ),
                     ),
