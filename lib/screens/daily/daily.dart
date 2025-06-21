@@ -34,6 +34,70 @@ class DailyPage extends StatelessWidget {
       ),
       body: Column(
         children: [
+          // 달성률 표시
+          Obx(() {
+            final allTasks = getTask();
+            final completedTasks =
+                allTasks.where((task) => task["completed"]).length;
+            final totalTasks = allTasks.length;
+            final achievementRate = totalTasks > 0
+                ? (completedTasks / totalTasks * 100).round()
+                : 0;
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isToday ? "오늘의 달성률" : "내일의 달성률",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "$completedTasks / $totalTasks 완료",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: achievementRate == 100 ? Colors.green : color,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "$achievementRate%",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
           Expanded(
             child: Obx(() {
               final tasks =

@@ -416,6 +416,154 @@ class _MonthlyPageState extends State<MonthlyPage> {
             ),
           ),
           const SizedBox(height: 16),
+          // 월간 달성률 표시
+          Obx(() {
+            final currentMonth = _focusedDay.month;
+            final currentYear = _focusedDay.year;
+            final monthlyTasks = taskController.monthlyTasks.where((task) {
+              final taskDate = DateTime.parse(task["date"]);
+              return taskDate.year == currentYear &&
+                  taskDate.month == currentMonth;
+            }).toList();
+
+            if (monthlyTasks.isNotEmpty) {
+              final completedMonthlyTasks =
+                  monthlyTasks.where((task) => task["completed"]).length;
+              final totalMonthlyTasks = monthlyTasks.length;
+              final monthlyAchievementRate =
+                  (completedMonthlyTasks / totalMonthlyTasks * 100).round();
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16.0),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "$currentYear년 $currentMonth월 전체 달성률",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "$completedMonthlyTasks / $totalMonthlyTasks 완료",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: monthlyAchievementRate == 100
+                            ? Colors.green
+                            : Colors.blue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        "$monthlyAchievementRate%",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+          // 일별 달성률 표시
+          Obx(() {
+            final filteredTasks = taskController.monthlyTasks.where((task) {
+              final taskDate = DateTime.parse(task["date"]);
+              return isSameDay(taskDate, _selectedDay);
+            }).toList();
+
+            if (filteredTasks.isNotEmpty) {
+              final completedTasks =
+                  filteredTasks.where((task) => task["completed"]).length;
+              final totalTasks = filteredTasks.length;
+              final achievementRate =
+                  (completedTasks / totalTasks * 100).round();
+              final selectedDate = _selectedDay!;
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16.0),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${selectedDate.month}월 ${selectedDate.day}일 달성률",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "$completedTasks / $totalTasks 완료",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: achievementRate == 100
+                            ? Colors.green
+                            : Colors.deepPurple,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        "$achievementRate%",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           Expanded(
             child: Obx(() {
               final filteredTasks = taskController.monthlyTasks.where((task) {
@@ -458,7 +606,7 @@ class _MonthlyPageState extends State<MonthlyPage> {
                           activeColor: Colors.deepPurple,
                         ),
                         title: Text(
-                          "${task["title"]} ${task["time"] != null ? '(${task["time"]})' : ''}",
+                          "${task["title"]} ${task["time"] != null && task["time"].toString().isNotEmpty ? '(${task["time"]})' : '(하루종일)'}",
                           style: TextStyle(
                             fontSize: 16,
                             color: task["completed"]
