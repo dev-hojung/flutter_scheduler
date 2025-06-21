@@ -4,5 +4,6 @@ flutter_native_splash:
   android: true # Android에서 활성화
   ios: true # iOS에서 활성화
   web: false # 웹에서는 비활성화
-  android_gravity: center # 이미지 위치 (Android)
-  ios_content_mode: scaleAspectFit # 이미지 위치 (iOS)
+  android_gravity: fill # Android에서 이미지가 화면을 채우도록 설정
+  ios_content_mode: scaleAspectFill # iOS에서 이미지가 화면을 채우도록 설정
+  fullscreen: true # 스플래시 화면을 풀스크린으로 설정
