@@ -51,89 +51,306 @@ class _MonthlyPageState extends State<MonthlyPage> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                "${selectedDate.month}월 ${selectedDate.day}일 일정 추가",
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: "일정 내용",
-                      border: OutlineInputBorder(),
-                      hintText: "할 일을 입력해주세요",
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 25,
+                      offset: const Offset(0, 12),
                     ),
-                    autofocus: true,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedTime != null
-                              ? "선택된 시간: ${selectedTime?.format(context)}"
-                              : "시간을 선택하세요 (선택사항)",
-                          style: const TextStyle(fontSize: 14),
+                    BoxShadow(
+                      color: Colors.grey.shade300,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 헤더
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.event_note,
+                            color: Colors.deepPurple,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "일정 추가",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                              Text(
+                                "${selectedDate.month}월 ${selectedDate.day}일",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.deepPurple,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            Icons.close,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 일정 입력 필드
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: TextField(
+                        controller: titleController,
+                        decoration: const InputDecoration(
+                          labelText: "일정 내용",
+                          hintText: "어떤 일정이 있으신가요?",
+                          prefixIcon:
+                              Icon(Icons.edit, color: Colors.deepPurple),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(16),
+                          labelStyle: TextStyle(color: Colors.deepPurple),
+                        ),
+                        autofocus: true,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 시간 선택
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: selectedTime != null
+                            ? Colors.grey.shade50
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selectedTime != null
+                              ? Colors.deepPurple
+                              : Colors.grey[300]!,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.access_time),
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (time != null) {
-                            setState(() {
-                              selectedTime = time;
-                            });
-                          }
-                        },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: selectedTime != null
+                                ? Colors.deepPurple
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "시간",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  selectedTime != null
+                                      ? selectedTime!.format(context)
+                                      : "하루 종일 (선택사항)",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: selectedTime != null
+                                        ? Colors.deepPurple
+                                        : Colors.grey[600],
+                                    fontWeight: selectedTime != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final time = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+                              if (time != null) {
+                                setState(() {
+                                  selectedTime = time;
+                                });
+                              }
+                            },
+                            child: Text(
+                              selectedTime != null ? "변경" : "선택",
+                              style: const TextStyle(color: Colors.deepPurple),
+                            ),
+                          ),
+                          if (selectedTime != null)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedTime = null;
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 버튼들
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.grey[300]!),
+                              ),
+                            ),
+                            child: Text(
+                              "취소",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (titleController.text.trim().isNotEmpty) {
+                                final taskData = {
+                                  "title": titleController.text.trim(),
+                                  "date":
+                                      "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
+                                  "completed": false,
+                                };
+
+                                if (selectedTime != null) {
+                                  taskData["time"] =
+                                      selectedTime!.format(context);
+                                }
+
+                                taskController.addTask("monthly", taskData);
+                                this.setState(() {});
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Row(
+                                      children: [
+                                        Icon(Icons.check_circle,
+                                            color: Colors.white),
+                                        SizedBox(width: 8),
+                                        Text("일정이 추가되었습니다!"),
+                                      ],
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: Colors.green[400],
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Row(
+                                      children: [
+                                        Icon(Icons.warning,
+                                            color: Colors.white),
+                                        SizedBox(width: 8),
+                                        Text("일정 내용을 입력해주세요."),
+                                      ],
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: Colors.red[400],
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  "추가하기",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("취소"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (titleController.text.trim().isNotEmpty) {
-                      final taskData = {
-                        "title": titleController.text.trim(),
-                        "date":
-                            "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
-                        "completed": false,
-                      };
-
-                      if (selectedTime != null) {
-                        taskData["time"] = selectedTime!.format(context);
-                      }
-
-                      taskController.addTask("monthly", taskData);
-                      this.setState(() {});
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("추가"),
-                ),
-              ],
             );
           },
         );
@@ -161,109 +378,387 @@ class _MonthlyPageState extends State<MonthlyPage> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                "${taskDate.month}월 ${taskDate.day}일 일정 수정",
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: "일정 내용",
-                      border: OutlineInputBorder(),
-                      hintText: "할 일을 입력해주세요",
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 25,
+                      offset: const Offset(0, 12),
                     ),
-                    autofocus: true,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedTime != null
-                              ? "선택된 시간: ${selectedTime?.format(context)}"
-                              : "시간을 선택하세요 (선택사항)",
-                          style: const TextStyle(fontSize: 14),
+                    BoxShadow(
+                      color: Colors.grey.shade300,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 헤더
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.edit_calendar,
+                            color: Colors.orange,
+                            size: 24,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.access_time),
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: selectedTime ?? TimeOfDay.now(),
-                          );
-                          if (time != null) {
-                            setState(() {
-                              selectedTime = time;
-                            });
-                          }
-                        },
-                      ),
-                      if (selectedTime != null)
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "일정 수정",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                              Text(
+                                "${taskDate.month}월 ${taskDate.day}일",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              selectedTime = null;
-                            });
-                          },
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            Icons.close,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 일정 입력 필드
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: TextField(
+                        controller: titleController,
+                        decoration: const InputDecoration(
+                          labelText: "일정 내용",
+                          hintText: "수정할 내용을 입력하세요",
+                          prefixIcon: Icon(Icons.edit, color: Colors.orange),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(16),
+                          labelStyle: TextStyle(color: Colors.orange),
+                        ),
+                        autofocus: true,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 시간 선택
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: selectedTime != null
+                            ? Colors.grey.shade50
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selectedTime != null
+                              ? Colors.orange
+                              : Colors.grey[300]!,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: selectedTime != null
+                                ? Colors.orange
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "시간",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  selectedTime != null
+                                      ? selectedTime!.format(context)
+                                      : "하루 종일 (선택사항)",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: selectedTime != null
+                                        ? Colors.orange
+                                        : Colors.grey[600],
+                                    fontWeight: selectedTime != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final time = await showTimePicker(
+                                context: context,
+                                initialTime: selectedTime ?? TimeOfDay.now(),
+                              );
+                              if (time != null) {
+                                setState(() {
+                                  selectedTime = time;
+                                });
+                              }
+                            },
+                            child: const Text(
+                              "변경",
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                          ),
+                          if (selectedTime != null)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedTime = null;
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 버튼들
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.grey[300]!),
+                              ),
+                            ),
+                            child: Text(
+                              "취소",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              // 삭제 확인 다이얼로그
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("일정 삭제"),
+                                  content: const Text("정말로 이 일정을 삭제하시겠습니까?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text("취소"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        final taskIndex = taskController
+                                            .monthlyTasks
+                                            .indexOf(task);
+                                        taskController.deleteTask(
+                                            "monthly", taskIndex);
+                                        this.setState(() {});
+                                        Navigator.pop(context); // 확인 다이얼로그 닫기
+                                        Navigator.pop(context); // 수정 다이얼로그 닫기
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: const Row(
+                                              children: [
+                                                Icon(Icons.delete,
+                                                    color: Colors.white),
+                                                SizedBox(width: 8),
+                                                Text("일정이 삭제되었습니다."),
+                                              ],
+                                            ),
+                                            duration:
+                                                const Duration(seconds: 2),
+                                            backgroundColor: Colors.red[400],
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text("삭제",
+                                          style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: const BorderSide(color: Colors.red),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.delete, color: Colors.red, size: 18),
+                                SizedBox(width: 4),
+                                Text(
+                                  "삭제",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (titleController.text.trim().isNotEmpty) {
+                                final taskIndex =
+                                    taskController.monthlyTasks.indexOf(task);
+                                final updatedTask =
+                                    Map<String, dynamic>.from(task);
+                                updatedTask["title"] =
+                                    titleController.text.trim();
+
+                                if (selectedTime != null) {
+                                  updatedTask["time"] =
+                                      selectedTime!.format(context);
+                                } else {
+                                  updatedTask.remove("time");
+                                }
+
+                                taskController.updateTask(
+                                    "monthly", taskIndex, updatedTask);
+                                this.setState(() {});
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Row(
+                                      children: [
+                                        Icon(Icons.check_circle,
+                                            color: Colors.white),
+                                        SizedBox(width: 8),
+                                        Text("일정이 수정되었습니다!"),
+                                      ],
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: Colors.green[400],
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Row(
+                                      children: [
+                                        Icon(Icons.warning,
+                                            color: Colors.white),
+                                        SizedBox(width: 8),
+                                        Text("일정 내용을 입력해주세요."),
+                                      ],
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: Colors.red[400],
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.edit, size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  "수정하기",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("취소"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // 삭제 기능
-                    final taskIndex = taskController.monthlyTasks.indexOf(task);
-                    taskController.deleteTask("monthly", taskIndex);
-                    this.setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("삭제", style: TextStyle(color: Colors.red)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (titleController.text.trim().isNotEmpty) {
-                      final taskIndex =
-                          taskController.monthlyTasks.indexOf(task);
-                      final updatedTask = Map<String, dynamic>.from(task);
-                      updatedTask["title"] = titleController.text.trim();
-
-                      if (selectedTime != null) {
-                        updatedTask["time"] = selectedTime!.format(context);
-                      } else {
-                        updatedTask.remove("time");
-                      }
-
-                      taskController.updateTask(
-                          "monthly", taskIndex, updatedTask);
-                      this.setState(() {});
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("수정"),
-                ),
-              ],
             );
           },
         );
@@ -287,6 +782,7 @@ class _MonthlyPageState extends State<MonthlyPage> {
       body: Column(
         children: [
           TableCalendar(
+            locale: 'ko_KR',
             firstDay: DateTime(2000),
             lastDay: DateTime(2100),
             focusedDay: _focusedDay,
@@ -300,10 +796,14 @@ class _MonthlyPageState extends State<MonthlyPage> {
             eventLoader: (day) => _getTasksForDay(day),
             calendarFormat: CalendarFormat.month,
             availableCalendarFormats: const {
-              CalendarFormat.month: 'Month',
+              CalendarFormat.month: '월',
             },
             headerStyle: const HeaderStyle(
               formatButtonVisible: false,
+              titleTextStyle: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
@@ -390,10 +890,8 @@ class _MonthlyPageState extends State<MonthlyPage> {
                           margin: const EdgeInsets.symmetric(horizontal: 1.5),
                           height: 6,
                           width: 6,
-                          decoration: BoxDecoration(
-                            color: (event as Map<String, dynamic>)['completed']
-                                ? Colors.grey
-                                : Colors.red,
+                          decoration: const BoxDecoration(
+                            color: Colors.deepPurple,
                             shape: BoxShape.circle,
                           ),
                         );
